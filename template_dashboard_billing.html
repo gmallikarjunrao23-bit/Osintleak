@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Billing · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+{% set badge = config.TIER_BADGES.get(current_user.tier, ('🆓','#6b7280')) %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-credit-card" style="color:var(--purple2)"></i> Billing</div>
+  <div class="page-sub">Upgrade your plan via UPI</div>
+</div>
+
+<!-- CURRENT PLAN -->
+<div class="card mb-2">
+  <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Current Plan</div>
+  <div class="flex items-center gap-3">
+    <span class="badge badge-{{ current_user.tier }}" style="font-size:.9rem;padding:.4rem .9rem">
+      {{ badge[0] }} {{ current_user.tier|capitalize }}
+    </span>
+    {% if current_user.premium_expiry %}
+    <span style="font-size:.8rem;color:var(--text3)">Expires {{ current_user.premium_expiry.strftime('%Y-%m-%d') }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- PLAN SELECT -->
+<div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">
+  Choose a Plan
+</div>
+
+<div class="tier-grid mb-2">
+  {% for tier, price in tier_prices.items() %}
+  {% set tb = config.TIER_BADGES.get(tier, ('','#fff')) %}
+  {% set limits = config.TIER_LIMITS.get(tier, {}) %}
+  <div class="tier-card {% if current_user.tier == tier %}selected{% endif %}"
+       data-tier="{{ tier }}" data-price="{{ price }}">
+    <div class="tier-name">{{ tb[0] }} {{ tier|capitalize }}</div>
+    <div class="tier-price">₹{{ price }}</div>
+    <div class="tier-price-sub">/month</div>
+    <div class="tier-feature">
+      {{ limits.get('searches_day', 3) if limits.get('searches_day', 3) < 99999 else '∞' }}
+      searches/day
+    </div>
+    <div class="tier-feature">{{ '✅ Export' if limits.get('export') else '❌ No Export' }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- PAYMENT FORM -->
+<div class="card">
+  <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem">
+    <i class="fa fa-qrcode" style="color:var(--purple2)"></i> Pay via UPI
+  </div>
+
+  <div class="alert alert-info alert-persist">
+    <i class="fa fa-circle-info"></i>
+    <div>
+      Send payment to UPI ID:
+      <strong style="color:var(--cyan2)">{{ upi_id }}</strong>
+      <button data-copy="{{ upi_id }}" class="btn btn-ghost btn-sm" style="margin-left:.5rem">copy</button>
+      <br>
+      Bank: <span style="color:var(--text2)">{{ bank_name }}</span>
+      <br>
+      Amount: <span id="display-amount" style="color:var(--green);font-weight:700">Select a plan above</span>
+    </div>
+  </div>
+
+  <form method="POST" action="{{ url_for('billing.submit') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="tier" id="selected-tier" value="">
+
+    <div class="form-group">
+      <label class="form-label">Transaction ID <span style="color:var(--red)">*</span></label>
+      <input type="text" name="transaction_id" class="form-control"
+             placeholder="UTR or transaction reference" required>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Your UPI ID <span style="color:var(--text3)">(optional)</span></label>
+      <input type="text" name="upi_id" class="form-control" placeholder="yourname@upi">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Screenshot URL <span style="color:var(--text3)">(optional)</span></label>
+      <input type="url" name="screenshot_url" class="form-control" placeholder="https://...">
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fa fa-paper-plane"></i> Submit Payment
+    </button>
+  </form>
+</div>
+
+<!-- PAYMENT HISTORY -->
+{% if history %}
+<div class="mt-2">
+  <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">
+    Payment History
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Plan</th><th>Amount</th><th>Txn ID</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for p in history %}
+        <tr>
+          <td style="font-size:.78rem;color:var(--text3)">{{ p.created_at.strftime('%Y-%m-%d') }}</td>
+          <td><span class="badge badge-{{ p.tier }}">{{ p.tier|capitalize }}</span></td>
+          <td style="color:var(--green)">₹{{ p.amount|int }}</td>
+          <td style="font-family:monospace;font-size:.78rem;color:var(--text3)">{{ p.transaction_id[:20] }}</td>
+          <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
