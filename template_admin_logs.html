@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs · Admin · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-list" style="color:var(--purple2)"></i> Audit Logs</div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>Details</th><th>IP</th></tr>
+    </thead>
+    <tbody>
+      {% for log in pagination.items %}
+      <tr>
+        <td style="font-size:.75rem;color:var(--text3);white-space:nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td style="font-size:.8rem">{{ log.user.email if log.user else '—' }}</td>
+        <td><span class="badge badge-premium">{{ log.action }}</span></td>
+        <td style="font-size:.78rem;color:var(--text3)">{{ log.resource or '—' }} {{ log.resource_id or '' }}</td>
+        <td style="font-size:.78rem;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis">{{ log.details or '—' }}</td>
+        <td style="font-family:monospace;font-size:.75rem;color:var(--text3)">{{ log.ip_address or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}" class="page-btn">‹</a>
+  {% endif %}
+  {% for p in pagination.iter_pages() %}
+    {% if p %}
+      <a href="?page={{ p }}" class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+    {% else %}
+      <span class="page-btn">…</span>
+    {% endif %}
+  {% endfor %}
+  {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}" class="page-btn">›</a>
+  {% endif %}
+</div>
+
+{% endblock %}
