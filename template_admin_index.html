@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Admin · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-shield-halved" style="color:var(--purple2)"></i> Admin Panel</div>
+  <div class="page-sub">by {{ config.DEVELOPER }}</div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon purple"><i class="fa fa-users"></i></div>
+    <div><div class="stat-value">{{ stats.total_users }}</div><div class="stat-label">Total Users</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon cyan"><i class="fa fa-crown"></i></div>
+    <div><div class="stat-value">{{ stats.premium_users }}</div><div class="stat-label">Premium Users</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon yellow"><i class="fa fa-clock"></i></div>
+    <div><div class="stat-value">{{ stats.pending_payments }}</div><div class="stat-label">Pending Payments</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fa fa-indian-rupee-sign"></i></div>
+    <div><div class="stat-value">{{ stats.revenue|int }}</div><div class="stat-label">Total Revenue</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple"><i class="fa fa-magnifying-glass"></i></div>
+    <div><div class="stat-value">{{ stats.today_searches }}</div><div class="stat-label">Today Searches</div></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem">
+
+  <div class="card">
+    <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem">
+      Recent Users
+    </div>
+    {% for u in recent_users %}
+    <div class="flex items-center justify-between" style="padding:.5rem 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-2">
+        <img src="{{ u.avatar_url }}" style="width:28px;height:28px;border-radius:50%">
+        <div>
+          <div style="font-size:.82rem;color:var(--text)">{{ u.full_name }}</div>
+          <div style="font-size:.7rem;color:var(--text3)">{{ u.email }}</div>
+        </div>
+      </div>
+      <span class="badge badge-{{ u.tier }}">{{ u.tier }}</span>
+    </div>
+    {% endfor %}
+    <div class="mt-1">
+      <a href="{{ url_for('admin.users') }}" class="btn btn-ghost btn-sm">All Users →</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem">
+      Recent Payments
+    </div>
+    {% for p in recent_payments %}
+    <div class="flex items-center justify-between" style="padding:.5rem 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:.82rem;color:var(--text)">{{ p.user.full_name }}</div>
+        <div style="font-size:.7rem;color:var(--text3)">₹{{ p.amount|int }} · {{ p.tier }}</div>
+      </div>
+      <span class="badge badge-{{ p.status }}">{{ p.status }}</span>
+    </div>
+    {% endfor %}
+    <div class="mt-1">
+      <a href="{{ url_for('admin.payments') }}" class="btn btn-ghost btn-sm">All Payments →</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="flex gap-2 mt-2" style="flex-wrap:wrap">
+  <a href="{{ url_for('admin.users') }}" class="btn btn-primary"><i class="fa fa-users"></i> Manage Users</a>
+  <a href="{{ url_for('admin.payments') }}" class="btn btn-ghost"><i class="fa fa-credit-card"></i> Payments</a>
+  <a href="{{ url_for('admin.logs') }}" class="btn btn-ghost"><i class="fa fa-list"></i> Audit Logs</a>
+</div>
+
+{% endblock %}
