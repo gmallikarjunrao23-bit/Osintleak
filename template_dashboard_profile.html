@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Profile · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+{% set badge = config.TIER_BADGES.get(current_user.tier, ('🆓','#6b7280')) %}
+{% set tier_limits = config.TIER_LIMITS.get(current_user.tier, {}) %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-user" style="color:var(--purple2)"></i> Profile</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+
+  <!-- USER CARD -->
+  <div class="card" style="text-align:center">
+    <img src="{{ current_user.avatar_url }}" alt="avatar"
+         style="width:80px;height:80px;border-radius:50%;border:3px solid var(--purple);margin:0 auto 1rem">
+    <div style="font-size:1.1rem;font-weight:600;color:var(--text)">{{ current_user.full_name }}</div>
+    <div style="font-size:.85rem;color:var(--text3);margin-bottom:.75rem">{{ current_user.email }}</div>
+    <span class="badge badge-{{ current_user.tier }}">{{ badge[0] }} {{ current_user.tier|capitalize }}</span>
+    {% if current_user.premium_expiry %}
+    <div style="font-size:.75rem;color:var(--text3);margin-top:.5rem">
+      Expires: {{ current_user.premium_expiry.strftime('%Y-%m-%d') }}
+    </div>
+    {% endif %}
+    <div class="divider"></div>
+    <div style="font-size:.78rem;color:var(--text3)">
+      Referral Code:
+      <span style="color:var(--purple2);font-family:monospace">{{ current_user.referral_code }}</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:.5rem"
+              data-copy="{{ current_user.referral_code }}">copy</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="card">
+    <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem">
+      Account Stats
+    </div>
+    <div style="display:grid;gap:.75rem">
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">User ID</span>
+        <span class="font-mono text-cyan">{{ current_user.user_id }}</span>
+      </div>
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">Total Searches</span>
+        <span class="text-purple">{{ current_user.total_searches }}</span>
+      </div>
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">Today's Searches</span>
+        <span>{{ current_user.searches_today }}</span>
+      </div>
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">Daily Limit</span>
+        <span>{{ tier_limits.get('searches_day', 3) if tier_limits.get('searches_day', 3) < 99999 else '∞' }}</span>
+      </div>
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">Export Access</span>
+        <span>{{ '✅' if tier_limits.get('export') else '❌' }}</span>
+      </div>
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">Member Since</span>
+        <span class="text-muted">{{ current_user.created_at.strftime('%Y-%m-%d') }}</span>
+      </div>
+      <div class="flex justify-between" style="font-size:.875rem">
+        <span class="text-muted">Last Login</span>
+        <span class="text-muted">{{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else '—' }}</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <a href="{{ url_for('billing.index') }}" class="btn btn-primary w-full">
+      <i class="fa fa-arrow-up"></i> Upgrade Plan
+    </a>
+  </div>
+
+</div>
+{% endblock %}
