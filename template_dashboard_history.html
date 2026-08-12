@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}History · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+<div class="page-header flex items-center justify-between">
+  <div>
+    <div class="page-title"><i class="fa fa-clock-rotate-left" style="color:var(--purple2)"></i> Search History</div>
+    <div class="page-sub">All your past queries</div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<form method="GET" class="flex gap-2 mb-2" style="flex-wrap:wrap">
+  <div class="search-input-wrap" style="flex:1;min-width:200px">
+    <i class="fa fa-search search-input-icon"></i>
+    <input type="text" name="q" class="search-input" value="{{ q }}" placeholder="Filter by query...">
+  </div>
+  <select name="type" class="form-control" style="width:140px">
+    <option value="">All Types</option>
+    {% for t in ['phone','email','username','domain','any'] %}
+    <option value="{{ t }}" {% if qtype == t %}selected{% endif %}>{{ t|capitalize }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-ghost btn-sm">Filter</button>
+  {% if q or qtype %}
+  <a href="{{ url_for('dashboard.history') }}" class="btn btn-ghost btn-sm">Clear</a>
+  {% endif %}
+</form>
+
+{% if pagination.items %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Query</th><th>Type</th><th>Results</th><th>Response</th><th>Status</th><th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in pagination.items %}
+      <tr>
+        <td style="color:var(--text);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          {{ log.query }}
+        </td>
+        <td><span class="badge badge-premium">{{ log.query_type }}</span></td>
+        <td style="color:var(--cyan2)">{{ log.result_count }}</td>
+        <td style="color:var(--text3);font-size:.78rem">{{ '%.2f'|format(log.response_time or 0) }}s</td>
+        <td>
+          <span class="badge badge-{{ 'approved' if log.api_status == 'ok' else 'rejected' }}">
+            {{ log.api_status }}
+          </span>
+        </td>
+        <td style="color:var(--text3);font-size:.78rem">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- PAGINATION -->
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}&q={{ q }}&type={{ qtype }}" class="page-btn">‹</a>
+  {% endif %}
+  {% for p in pagination.iter_pages() %}
+    {% if p %}
+      <a href="?page={{ p }}&q={{ q }}&type={{ qtype }}"
+         class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+    {% else %}
+      <span class="page-btn">…</span>
+    {% endif %}
+  {% endfor %}
+  {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}&q={{ q }}&type={{ qtype }}" class="page-btn">›</a>
+  {% endif %}
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:3rem">
+  <i class="fa fa-clock" style="font-size:2rem;color:var(--text3);margin-bottom:1rem"></i>
+  <div style="color:var(--text3)">No search history yet.</div>
+</div>
+{% endif %}
+
+{% endblock %}
