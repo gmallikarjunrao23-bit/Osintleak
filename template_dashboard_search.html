@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Search · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+{% set can_export = config.TIER_LIMITS.get(current_user.tier, {}).get('export', False) %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-magnifying-glass" style="color:var(--purple2)"></i> OSINT Search</div>
+  <div class="page-sub">Query across 500+ breach databases</div>
+</div>
+
+<!-- SEARCH FORM -->
+<div class="card mb-2">
+  <form method="POST" action="{{ url_for('search.index') }}" class="search-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="search-input-wrap">
+      <i class="fa fa-magnifying-glass search-input-icon"></i>
+      <input type="text" name="query" class="search-input"
+             value="{{ query }}"
+             placeholder="Phone (918887882236), email, username, domain..." autofocus>
+    </div>
+    <button type="submit" class="btn btn-primary" id="search-btn">
+      <i class="fa fa-search"></i> Search
+    </button>
+  </form>
+</div>
+
+{% if result %}
+
+  <!-- META BAR -->
+  <div class="result-meta">
+    <div class="result-meta-item">
+      <span class="result-meta-label">Query</span>
+      <span class="result-meta-value" style="font-size:.85rem;font-family:monospace">{{ result.query }}</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Type</span>
+      <span class="result-meta-value">{{ result.query_type }}</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Sources</span>
+      <span class="result-meta-value">{{ result.total_sources }}</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Records</span>
+      <span class="result-meta-value">{{ result.total_records }}</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Response</span>
+      <span class="result-meta-value">{{ '%.3f'|format(result.response_time) }}s</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Status</span>
+      <span class="result-meta-value" style="color:{% if result.ok %}var(--green){% else %}var(--red){% endif %}">
+        {{ 'HIT' if result.ok and result.total_records > 0 else 'MISS' if result.ok else 'ERROR' }}
+      </span>
+    </div>
+  </div>
+
+  {% if result.error %}
+    <div class="alert alert-danger"><i class="fa fa-circle-exclamation"></i> {{ result.error }}</div>
+  {% endif %}
+
+  {% if result.ok and result.total_records == 0 %}
+    <div class="alert alert-warning alert-persist">
+      <i class="fa fa-circle-info"></i>
+      No records found for <strong>{{ result.query }}</strong> in any database.
+    </div>
+  {% endif %}
+
+  {% if result.ok and result.total_records > 0 %}
+
+    <!-- EXPORT BAR -->
+    {% if can_export %}
+    <div class="export-bar">
+      <span class="export-bar-label"><i class="fa fa-download"></i> Export:</span>
+
+      <form method="POST" action="{{ url_for('search.export', fmt='json') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="result_json" value="{{ result|tojson }}">
+        <button type="submit" class="btn btn-ghost btn-sm">
+          <i class="fa fa-file-code"></i> JSON
+        </button>
+      </form>
+
+      <form method="POST" action="{{ url_for('search.export', fmt='csv') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="result_json" value="{{ result|tojson }}">
+        <button type="submit" class="btn btn-ghost btn-sm">
+          <i class="fa fa-file-csv"></i> CSV
+        </button>
+      </form>
+
+      <form id="share-form" action="{{ url_for('search.share') }}" method="POST" style="display:none">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="result_json" value="{{ result|tojson }}">
+      </form>
+      <button class="btn btn-ghost btn-sm" id="share-btn">
+        <i class="fa fa-link"></i> Share
+      </button>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+      <i class="fa fa-lock"></i>
+      <span>Export & share requires <a href="{{ url_for('billing.index') }}" style="color:var(--purple2)">Premium or higher</a>.</span>
+    </div>
+    {% endif %}
+
+    <!-- INTEL SUMMARY -->
+    {% set intel = result.intel %}
+    {% if intel %}
+    <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">
+      <i class="fa fa-brain" style="color:var(--purple2)"></i> Intelligence Summary
+    </div>
+    <div class="intel-summary">
+
+      {% if intel.get('names') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-user"></i> Names</div>
+        {% for v in intel.names %}<div class="intel-item">▸ {{ v }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('emails') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-envelope"></i> Emails</div>
+        {% for v in intel.emails %}
+          <div class="intel-item email">
+            📧 {{ v }}
+            <button class="btn btn-ghost btn-sm" style="padding:.1rem .4rem;font-size:.7rem"
+                    data-copy="{{ v }}">copy</button>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('phones') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-phone"></i> Phone Numbers</div>
+        {% for v in intel.phones %}
+          <div class="intel-item phone">📱 {{ v }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('ips') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-globe"></i> IP Addresses</div>
+        {% for v in intel.ips %}<div class="intel-item ip">🌐 {{ v }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('countries') or intel.get('regions') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-location-dot"></i> Location</div>
+        {% for v in intel.get('countries', []) %}<div class="intel-item">🌍 {{ v }}</div>{% endfor %}
+        {% for v in intel.get('regions', []) %}<div class="intel-item text-muted">📍 {{ v }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('addresses') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-map-pin"></i> Addresses</div>
+        {% for v in intel.addresses %}<div class="intel-item">📍 {{ v }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('documents') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-id-card"></i> Documents</div>
+        {% for v in intel.documents %}<div class="intel-item text-red">🪪 {{ v }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intel.get('hashes') %}
+      <div class="intel-card">
+        <div class="intel-card-title"><i class="fa fa-key"></i> Password Hashes</div>
+        {% for v in intel.hashes %}
+          <div class="intel-item hash">🔑 {{ v[:40] }}...</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+    <!-- PIVOT TARGETS -->
+    {% set pivot_phones = intel.get('phones', []) %}
+    {% set pivot_emails = intel.get('emails', []) %}
+    {% if (pivot_phones or pivot_emails) and (pivot_phones|length + pivot_emails|length) > 1 %}
+    <div class="card mb-2" style="border-color:rgba(124,58,237,.3)">
+      <div style="font-size:.8rem;font-weight:600;color:var(--purple2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">
+        <i class="fa fa-arrows-rotate"></i> Pivot Targets
+      </div>
+      <div class="flex gap-2" style="flex-wrap:wrap">
+        {% for p in pivot_phones %}
+          {% if p != result.query %}
+          <form method="POST" action="{{ url_for('search.index') }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="query" value="{{ p }}">
+            <button type="submit" class="btn btn-ghost btn-sm">📱 {{ p }}</button>
+          </form>
+          {% endif %}
+        {% endfor %}
+        {% for e in pivot_emails %}
+          <span class="btn btn-ghost btn-sm" style="cursor:default">📧 {{ e }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SOURCE RECORDS -->
+    <div style="font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">
+      <i class="fa fa-database" style="color:var(--purple2)"></i>
+      Source Records ({{ result.total_sources }} sources)
+    </div>
+
+    {% for src in result.sources %}
+    <div class="source-block">
+      <div class="source-header">
+        <div class="source-title">
+          {{ src.badge }} {{ src.title }}
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="source-count">{{ src.count }} record{{ 's' if src.count != 1 }}</span>
+          <span class="accordion-icon" style="color:var(--text3)">▼</span>
+        </div>
+      </div>
+      <div class="source-records">
+        {% if src.desc %}
+          <div style="font-size:.75rem;color:var(--text3);margin-bottom:.75rem">{{ src.desc[:150] }}</div>
+        {% endif %}
+        {% for rec in src.records %}
+        <div class="record-card">
+          {% if rec.full_name %}
+          <div class="record-field">
+            <div class="record-label">Full Name</div>
+            <div class="record-value">{{ rec.full_name }}</div>
+          </div>
+          {% endif %}
+          {% if rec.email %}
+          <div class="record-field">
+            <div class="record-label">Email</div>
+            <div class="record-value text-purple">{{ rec.email }}</div>
+          </div>
+          {% endif %}
+          {% if rec.phones %}
+          <div class="record-field">
+            <div class="record-label">Phone</div>
+            <div class="record-value text-green">{{ rec.phones|join(', ') }}</div>
+          </div>
+          {% endif %}
+          {% if rec.ip %}
+          <div class="record-field">
+            <div class="record-label">IP Address</div>
+            <div class="record-value text-yellow">{{ rec.ip }}</div>
+          </div>
+          {% endif %}
+          {% if rec.country %}
+          <div class="record-field">
+            <div class="record-label">Country</div>
+            <div class="record-value">{{ rec.country }}</div>
+          </div>
+          {% endif %}
+          {% if rec.region %}
+          <div class="record-field">
+            <div class="record-label">Region</div>
+            <div class="record-value text-muted">{{ rec.region }}</div>
+          </div>
+          {% endif %}
+          {% if rec.addresses %}
+          <div class="record-field" style="grid-column:1/-1">
+            <div class="record-label">Address</div>
+            <div class="record-value text-muted">{{ rec.addresses|join(' · ') }}</div>
+          </div>
+          {% endif %}
+          {% if rec.document_number %}
+          <div class="record-field">
+            <div class="record-label">Document</div>
+            <div class="record-value text-red">{{ rec.document_number }}</div>
+          </div>
+          {% endif %}
+          {% if rec.registration_date %}
+          <div class="record-field">
+            <div class="record-label">Registered</div>
+            <div class="record-value text-muted">{{ rec.registration_date }}</div>
+          </div>
+          {% endif %}
+          {% if rec.hash %}
+          <div class="record-field" style="grid-column:1/-1">
+            <div class="record-label">Hash (SHA-256)</div>
+            <div class="record-value text-red font-mono" style="font-size:.75rem">{{ rec.hash[:48] }}...</div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+  {% endif %}
+{% endif %}
+
+{% endblock %}
