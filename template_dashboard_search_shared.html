@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Result · OSINT 100X</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+<div style="max-width:900px;margin:2rem auto;padding:0 1.5rem">
+  <div style="text-align:center;margin-bottom:2rem">
+    <div style="font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:900;
+         background:linear-gradient(135deg,#7c3aed,#06b6d4);
+         -webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      🔍 OSINT 100X — Shared Result
+    </div>
+    <div style="color:#64748b;font-size:.8rem;margin-top:.25rem">Read-only shared view</div>
+  </div>
+
+  <div class="result-meta">
+    <div class="result-meta-item">
+      <span class="result-meta-label">Query</span>
+      <span class="result-meta-value" style="font-size:.85rem;font-family:monospace">{{ result.query }}</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Records</span>
+      <span class="result-meta-value">{{ result.total_records }}</span>
+    </div>
+    <div class="result-meta-item">
+      <span class="result-meta-label">Sources</span>
+      <span class="result-meta-value">{{ result.total_sources }}</span>
+    </div>
+  </div>
+
+  {% for src in result.sources %}
+  <div class="source-block" style="margin-bottom:1rem">
+    <div class="source-header">
+      <div class="source-title">{{ src.badge }} {{ src.title }}</div>
+      <span class="source-count">{{ src.count }} record{{ 's' if src.count != 1 }}</span>
+    </div>
+    <div class="source-records">
+      {% for rec in src.records %}
+      <div class="record-card">
+        {% if rec.full_name %}<div class="record-field"><div class="record-label">Name</div><div class="record-value">{{ rec.full_name }}</div></div>{% endif %}
+        {% if rec.email %}<div class="record-field"><div class="record-label">Email</div><div class="record-value text-purple">{{ rec.email }}</div></div>{% endif %}
+        {% if rec.phones %}<div class="record-field"><div class="record-label">Phone</div><div class="record-value text-green">{{ rec.phones|join(', ') }}</div></div>{% endif %}
+        {% if rec.ip %}<div class="record-field"><div class="record-label">IP</div><div class="record-value text-yellow">{{ rec.ip }}</div></div>{% endif %}
+        {% if rec.country %}<div class="record-field"><div class="record-label">Country</div><div class="record-value">{{ rec.country }}</div></div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div style="text-align:center;margin-top:2rem;font-size:.8rem;color:#64748b">
+    Powered by <a href="/" style="color:#7c3aed;text-decoration:none">OSINT 100X</a> · {{ config.DEVELOPER }}
+  </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
