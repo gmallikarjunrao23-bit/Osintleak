@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Payments · Admin · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-credit-card" style="color:var(--purple2)"></i> Payments</div>
+</div>
+
+<div class="flex gap-2 mb-2">
+  {% for s in ['', 'pending', 'approved', 'rejected'] %}
+  <a href="?status={{ s }}" class="btn btn-sm {{ 'btn-primary' if status == s else 'btn-ghost' }}">
+    {{ s|capitalize if s else 'All' }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>User</th><th>Plan</th><th>Amount</th><th>Txn ID</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for p in pagination.items %}
+      <tr>
+        <td>
+          <div style="font-size:.85rem;color:var(--text)">{{ p.user.full_name }}</div>
+          <div style="font-size:.72rem;color:var(--text3)">{{ p.user.email }}</div>
+        </td>
+        <td><span class="badge badge-{{ p.tier }}">{{ p.tier|capitalize }}</span></td>
+        <td style="color:var(--green);font-weight:600">₹{{ p.amount|int }}</td>
+        <td style="font-family:monospace;font-size:.75rem;color:var(--text3)">{{ p.transaction_id[:24] }}</td>
+        <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
+        <td style="font-size:.78rem;color:var(--text3)">{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          {% if p.status == 'pending' %}
+          <div class="flex gap-2">
+            <form method="POST" action="{{ url_for('admin.approve_payment', payment_id=p.id) }}">
+              <input type="hidden" name="notes" value="Approved">
+              <button type="submit" class="btn btn-success btn-sm">✓ Approve</button>
+            </form>
+            <form method="POST" action="{{ url_for('admin.reject_payment', payment_id=p.id) }}">
+              <input type="hidden" name="notes" value="Rejected">
+              <button type="submit" class="btn btn-danger btn-sm">✕ Reject</button>
+            </form>
+          </div>
+          {% else %}
+          <span style="font-size:.75rem;color:var(--text3)">{{ p.admin_notes or '—' }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}&status={{ status }}" class="page-btn">‹</a>
+  {% endif %}
+  {% for pg in pagination.iter_pages() %}
+    {% if pg %}
+      <a href="?page={{ pg }}&status={{ status }}"
+         class="page-btn {% if pg == pagination.page %}active{% endif %}">{{ pg }}</a>
+    {% else %}
+      <span class="page-btn">…</span>
+    {% endif %}
+  {% endfor %}
+  {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}&status={{ status }}" class="page-btn">›</a>
+  {% endif %}
+</div>
+
+{% endblock %}
