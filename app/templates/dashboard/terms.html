@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Terms & Conditions · {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-title"><i class="fa fa-file-shield" style="color:var(--purple2)"></i> Terms & Conditions</div>
+  <div class="page-sub">Last updated: August 2026</div>
+</div>
+
+<div class="card" style="max-width:800px">
+
+  <div style="margin-bottom:2rem">
+    <h2 style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--purple2);margin-bottom:.75rem">
+      1. Educational Purpose & Disclaimer
+    </h2>
+    <p style="color:var(--text2);line-height:1.8;font-size:.9rem">
+      OSINT 100X is a platform developed strictly for educational, research, and informational purposes only.
+      All data accessible through this platform is sourced from publicly available breach databases and open-source
+      intelligence repositories. The information provided is intended to help individuals, cybersecurity researchers,
+      and organizations understand the scope of data exposure and take appropriate measures to protect their digital
+      identities. By accessing this platform, you acknowledge that you are using it solely to learn about online
+      data privacy, cybersecurity awareness, and threat intelligence — not for any unlawful, malicious, or harmful
+      activity of any kind. The platform developers and administrators hold no responsibility for any misuse of the
+      information accessed through this service.
+    </p>
+  </div>
+
+  <div style="margin-bottom:2rem">
+    <h2 style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--purple2);margin-bottom:.75rem">
+      2. Acceptable Use Policy
+    </h2>
+    <p style="color:var(--text2);line-height:1.8;font-size:.9rem">
+      Users of OSINT 100X are strictly prohibited from using the platform to stalk, harass, threaten, or harm any
+      individual or organization. Searching for information about another person without their explicit consent is
+      permitted only in the context of legitimate cybersecurity research, self-verification, or authorized
+      investigations. Any attempt to use data obtained through this platform to commit fraud, identity theft,
+      unauthorized access to computer systems, or any other criminal activity is a direct violation of these terms
+      and may result in immediate account termination and reporting to relevant law enforcement authorities.
+      Users must comply with all applicable local, national, and international laws regarding data privacy,
+      including but not limited to the Information Technology Act (India), GDPR (Europe), and CCPA (USA).
+    </p>
+  </div>
+
+  <div style="margin-bottom:2rem">
+    <h2 style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--purple2);margin-bottom:.75rem">
+      3. Data Accuracy & Liability Limitation
+    </h2>
+    <p style="color:var(--text2);line-height:1.8;font-size:.9rem">
+      OSINT 100X aggregates data from third-party breach databases and public intelligence sources. We do not
+      guarantee the accuracy, completeness, or timeliness of any information displayed on this platform. All
+      data is provided "as is" without warranties of any kind, express or implied. The platform and its developers
+      shall not be held liable for any direct, indirect, incidental, or consequential damages arising from the use
+      of or reliance upon any information accessed through OSINT 100X. Users are advised to independently verify
+      any information before taking action based on it. Search results may contain outdated, incomplete, or
+      inaccurate data due to the nature of breach databases and open-source intelligence aggregation.
+      Subscription fees are non-refundable once a payment has been approved and plan access has been granted.
+    </p>
+  </div>
+
+  <div style="margin-bottom:2rem">
+    <h2 style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--purple2);margin-bottom:.75rem">
+      4. Privacy, Account Security & Termination
+    </h2>
+    <p style="color:var(--text2);line-height:1.8;font-size:.9rem">
+      Your account credentials and search history are stored securely and are never shared with third parties
+      without your consent, except where required by law. You are solely responsible for maintaining the
+      confidentiality of your account password and for all activities that occur under your account.
+      OSINT 100X reserves the right to suspend or permanently terminate any account found to be in violation
+      of these Terms & Conditions, without prior notice or refund. We also reserve the right to modify, update,
+      or discontinue any feature or pricing plan at any time. Continued use of the platform after any changes
+      to these terms constitutes your acceptance of the revised terms. For any queries, disputes, or concerns,
+      users may contact the platform administrator through official channels. By registering and using OSINT 100X,
+      you confirm that you have read, understood, and agreed to these Terms & Conditions in their entirety.
+    </p>
+  </div>
+
+  <div style="padding:1rem;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:var(--radius-sm);font-size:.8rem;color:var(--text3)">
+    <i class="fa fa-circle-info" style="color:var(--purple2)"></i>
+    This platform is for <strong style="color:var(--purple2)">educational and research purposes only</strong>.
+    Misuse of this platform is strictly prohibited and may result in legal action.
+    Developer: <strong style="color:var(--cyan2)">{{ config.DEVELOPER }}</strong>
+  </div>
+
+</div>
+
+{% endblock %}
